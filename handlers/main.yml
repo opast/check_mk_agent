@@ -1,0 +1,7 @@
+---
+# handlers file for check_mk_agent
+
+- name: restart firewalld
+  service:
+    name: firewalld
+    state: restarted

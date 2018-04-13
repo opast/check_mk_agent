@@ -1,0 +1,4 @@
+---
+# vars file for check_mk_agent
+
+check_mk_agent_package: 'check-mk-agent-1.2.6p12-1.noarch.rpm'

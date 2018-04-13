@@ -1,0 +1,64 @@
+---
+# tasks file for check_mk_agent
+
+- name: centos | delete old check_mk_agent
+#  shell: rm -rf /tmp/{{ check_mk_agent_package }}
+  file: path="/tmp/{{ check_mk_agent_package }}" state=absent
+  when: ansible_os_family == "RedHat"
+  tags:
+    - install
+    - update
+
+- name: centos | installing xinetd
+  yum: name=xinetd state=latest
+  when: ansible_os_family == "RedHat"
+  tags:
+    - install
+    - update
+
+- name: centos | copy rpm file to server
+  copy:
+    src: "{{ check_mk_agent_package }}"
+    dest: /tmp/{{ check_mk_agent_package }}
+  when: ansible_os_family == "RedHat"
+  tags:
+    - install
+    - update
+
+- name: centos | installing check_mk_agent
+  yum: name=/tmp/{{ check_mk_agent_package }} state=present
+  when: ansible_os_family == "RedHat"
+  tags:
+    - install
+    - update
+
+- name: Create config file
+  template: src=etc/xinetd.d/check_mk.j2
+            dest=/etc/xinetd.d/check_mk
+            mode=0644 owner=root group=root
+            backup=no
+  when: ansible_os_family == "RedHat"
+  tags:
+    - install
+    - update
+
+- name: Create config file
+  firewalld:
+    port: 6556/tcp
+    zone: public
+    permanent: true
+    state: enabled
+  when: ansible_os_family == "RedHat"
+  notify:
+    - restart firewalld
+  tags:
+    - install
+    - update
+
+- name: centos | starting and enabling xinetd
+  service: name=xinetd.service state=restarted enabled=yes
+  when: ansible_os_family == "RedHat"
+  tags:
+    - install
+    - update
+    - configure
